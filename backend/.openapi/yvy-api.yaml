@@ -1,0 +1,228 @@
+openapi: "3.1.0"
+info:
+  title: Yvy Capital API
+  version: "1.0.0"
+  description: |
+    Yvy Capital Asset Management — internal API.
+    All financial data is denominated in BRL unless stated otherwise.
+    PII (CPF, CNPJ, email) is never returned in logs or error messages.
+  contact:
+    name: Yvy Capital Engineering
+    email: leonardo.martins@yvy.capital
+
+servers:
+  - url: https://localhost:7007
+    description: Local development (HTTPS)
+  - url: http://localhost:5224
+    description: Local development (HTTP)
+
+tags:
+  - name: Funds
+    description: Fundo management operations
+
+paths:
+  /api/v1/funds:
+    get:
+      operationId: ListFunds
+      tags: [Funds]
+      summary: List all funds
+      responses:
+        "200":
+          description: List of funds
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FundResponse"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    post:
+      operationId: CreateFund
+      tags: [Funds]
+      summary: Create a new fund
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFundRequest"
+            examples:
+              fii_example:
+                summary: Create a FII fund
+                value:
+                  code: "YVYQ11"
+                  name: "Yvy Fundo de Infraestrutura"
+                  fundType: "FII"
+                  minimumInvestmentAmount: 5000.00
+                  minimumInvestmentCurrency: "BRL"
+      responses:
+        "201":
+          description: Fund created successfully
+          content:
+            application/json:
+              schema:
+                type: string
+                format: uuid
+                description: ID of the created fund
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/funds/{id}:
+    get:
+      operationId: GetFundById
+      tags: [Funds]
+      summary: Get fund by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Fund found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FundResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  schemas:
+    FundResponse:
+      type: object
+      required:
+        - id
+        - code
+        - name
+        - type
+        - status
+        - minimumInvestmentAmount
+        - minimumInvestmentCurrency
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          pattern: "^[A-Z]{4,6}\\d{2}$"
+          example: "YVYQ11"
+        name:
+          type: string
+          maxLength: 200
+          example: "Yvy Fundo de Infraestrutura"
+        type:
+          type: string
+          enum: [FII, FIC, FIM, FIA]
+        status:
+          type: string
+          enum: [Draft, Active, Suspended, Liquidated]
+        minimumInvestmentAmount:
+          type: number
+          format: decimal
+          minimum: 0
+          example: 5000.00
+        minimumInvestmentCurrency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          example: "BRL"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    CreateFundRequest:
+      type: object
+      required:
+        - code
+        - name
+        - fundType
+        - minimumInvestmentAmount
+      properties:
+        code:
+          type: string
+          pattern: "^[A-Za-z]{4,6}\\d{2}$"
+          example: "YVYQ11"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: "Yvy Fundo de Infraestrutura"
+        fundType:
+          type: string
+          enum: [FII, FIC, FIM, FIA]
+        minimumInvestmentAmount:
+          type: number
+          format: decimal
+          minimum: 0
+          example: 5000.00
+        minimumInvestmentCurrency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          default: "BRL"
+          example: "BRL"
+
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+    NotFound:
+      description: Resource not found
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+    Conflict:
+      description: Conflict — resource already exists
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+    UnprocessableEntity:
+      description: Validation errors
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+    InternalServerError:
+      description: Unexpected server error
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"

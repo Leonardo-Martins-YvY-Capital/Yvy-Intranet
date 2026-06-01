@@ -1,0 +1,116 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Barlow+Condensed:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* Brand Theme Colors */
+  --color-yvy-navy: #122C4F;
+  --color-yvy-royal: #3E5FAA;
+  --color-yvy-black: #000000;
+  --color-yvy-border: rgba(0, 0, 0, 0.2);
+
+  /* Brand Typography Families */
+  --font-barlow: "Barlow", sans-serif;
+  --font-barlowcn: "Barlow Condensed", sans-serif;
+}
+
+/* Stubs for custom corporate fonts defined in the stylesheet */
+@font-face {
+  font-family: 'BWBold';
+  src: url('/assets/fonts/bw_bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BWRegular';
+  src: url('/assets/fonts/bw_regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Base resets & layout settings */
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: var(--font-barlow);
+  background-color: #ffffff;
+  color: #122C4F;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom interactive transition utility class */
+.yvy-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Accordion panel heights collapsing styling */
+.yvy-panel-transition {
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
+}
+
+/* Skeleton loading shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(18, 44, 79, 0.07) 25%,
+    rgba(18, 44, 79, 0.13) 37%,
+    rgba(18, 44, 79, 0.07) 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+/* Custom checkbox */
+.yvy-checkbox {
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.yvy-checkbox:checked {
+  background-color: var(--color-yvy-navy);
+  border-color: var(--color-yvy-navy);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M3 8l3.5 3.5L13 5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 11px 11px;
+}
+
+.yvy-checkbox:indeterminate {
+  background-color: var(--color-yvy-navy);
+  border-color: var(--color-yvy-navy);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' d='M4 8h8'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 11px 11px;
+}
+
+.yvy-checkbox:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--color-yvy-royal);
+}
+
+.yvy-checkbox:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Striped table rows */
+.yvy-table-striped tbody tr:nth-child(even) {
+  background-color: rgba(18, 44, 79, 0.025);
+}
