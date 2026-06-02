@@ -114,3 +114,73 @@ body {
 .yvy-table-striped tbody tr:nth-child(even) {
   background-color: rgba(18, 44, 79, 0.025);
 }
+
+/* Toast slide-in / slide-out animations */
+@keyframes toast-slide-in {
+  from { transform: translateX(110%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes toast-slide-out {
+  from { transform: translateX(0);    opacity: 1; }
+  to   { transform: translateX(110%); opacity: 0; }
+}
+
+.toast-enter { animation: toast-slide-in  0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.toast-exit  { animation: toast-slide-out 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+/* Modal native backdrop */
+.yvy-modal::backdrop {
+  background-color: rgba(18, 44, 79, 0.4);
+}
+
+/* Scroll-lock while any modal is open — CSS-only, no JS needed */
+body:has(dialog[open]) {
+  overflow: hidden;
+}
+
+/* Custom radio button */
+.yvy-radio {
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.yvy-radio::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background-color: #ffffff;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.yvy-radio:checked {
+  background-color: var(--color-yvy-navy);
+  border-color: var(--color-yvy-navy);
+}
+
+.yvy-radio:checked::after {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.yvy-radio:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--color-yvy-royal);
+}
+
+.yvy-radio:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

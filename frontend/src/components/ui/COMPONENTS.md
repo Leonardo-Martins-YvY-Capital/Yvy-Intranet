@@ -128,14 +128,168 @@ Usage:
 
 ---
 
-## Upcoming (Sprint 2)
-- `Toast.tsx` — `Toast`, `ToastProvider`, `useToast` hook
-- `Modal.tsx` — `Modal`, `ModalHeader`, `ModalBody`, `ModalFooter`
-- `Tabs.tsx` — `Tabs`, `TabList`, `Tab`, `TabPanel`
-- `Textarea.tsx` — single export (forwardRef, mirrors Input)
+## Tabs
+File: `Tabs.tsx`  
+Exports: `Tabs`, `TabList`, `Tab`, `TabPanel`  
+Props (`Tabs`): `defaultValue?: string` (uncontrolled), `value?: string` + `onValueChange?` (controlled), `variant?: "underline"|"pill"`  
+Props (`Tab`): `value: string`  
+Props (`TabPanel`): `value: string`  
+Usage:
+```tsx
+<Tabs defaultValue="overview">
+  <TabList><Tab value="overview">Visão Geral</Tab><Tab value="docs">Documentos</Tab></TabList>
+  <TabPanel value="overview">...</TabPanel>
+  <TabPanel value="docs">...</TabPanel>
+</Tabs>
+```
+Note: `TabList` handles ArrowRight/Left/Home/End keyboard navigation automatically. `hidden` attribute used on inactive panels (preserves panel state on switch).
 
-## Upcoming (Sprint 3)
-- `DataList.tsx`, `Breadcrumb.tsx`, `Pagination.tsx`, `RadioGroup.tsx`, `Divider.tsx`, `ChartContainer.tsx`
+---
+
+## Textarea
+File: `Textarea.tsx`  
+Props: `rows?: number` (default 4), `resize?: "none"|"vertical"` (default "vertical"), extends `TextareaHTMLAttributes`  
+Usage: `<Textarea id="obs" placeholder="Observações..." />`  
+Note: identical className block to `Input` — same border, focus ring, disabled state.
+
+---
+
+## Toast / ToastProvider / useToast
+File: `Toast.tsx`  
+Exports: `ToastProvider`, `useToast`  
+Setup: `ToastProvider` wraps `<App />` in `main.tsx` — already configured.  
+Usage:
+```tsx
+const { toast } = useToast();
+toast({ variant: "success", title: "Salvo", description: "Opcional." });
+// variants: "success" | "error" | "warning" | "info"
+// duration?: number (default 5000ms)
+```
+Note: max 5 toasts stacked; newest at top; portal renders to `document.body` top-right; dismiss via × or auto-timeout.
+
+---
+
+## Modal
+File: `Modal.tsx`  
+Exports: `Modal`, `ModalHeader`, `ModalBody`, `ModalFooter`  
+Props (`Modal`): `open: boolean`, `onClose: () => void`, `size?: "sm"|"md"|"lg"|"full"`  
+Props (`ModalHeader`): `onClose?: () => void` (renders × button)  
+Usage:
+```tsx
+<Modal open={isOpen} onClose={() => setIsOpen(false)} size="md" aria-labelledby="title-id">
+  <ModalHeader onClose={() => setIsOpen(false)}>
+    <h2 id="title-id" className="text-lg font-semibold font-barlowcn uppercase tracking-wide">Título</h2>
+  </ModalHeader>
+  <ModalBody>...</ModalBody>
+  <ModalFooter>
+    <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>Cancelar</Button>
+    <Button size="sm">Confirmar</Button>
+  </ModalFooter>
+</Modal>
+```
+Note: native `<dialog>` — browser handles focus trap and Escape key. Scroll locks via CSS `body:has(dialog[open])`. Backdrop click also closes. Pass `aria-labelledby` pointing to heading id inside `ModalHeader`.
+
+---
+
+## Breadcrumb
+File: `Breadcrumb.tsx`  
+Props: `items: { label: string; to?: string }[]`, `className?: string`  
+Usage: `<Breadcrumb items={[{ label: "Fundos", to: "/" }, { label: "YVYQ11" }]} />`  
+Note: last item (no `to`) renders as current page with `aria-current="page"`. Uses React Router `Link` for linked items.
+
+---
+
+## ChartContainer
+File: `ChartContainer.tsx`  
+Props: `title: string`, `caption?: string`, `loading?: boolean`, `empty?: boolean`, `actions?: ReactNode`, `children`  
+Usage:
+```tsx
+<ChartContainer title="Valor da Cota" caption="Jun/25–Mai/26" actions={<Tabs ...>...</Tabs>}>
+  <ResponsiveContainer>...</ResponsiveContainer>
+</ChartContainer>
+```
+Note: library-agnostic container. `loading` shows skeleton; `empty` shows EmptyState. Recharts is installed (`npm install recharts` done).
+
+---
+
+## DataList / DataListRow
+File: `DataList.tsx`  
+Exports: `DataList`, `DataListRow`  
+Props (`DataList`): `layout?: "horizontal"|"vertical"` (default "horizontal")  
+Props (`DataListRow`): `label: string`, `value: ReactNode`, `className?: string`  
+Usage:
+```tsx
+<DataList>
+  <DataListRow label="Benchmark" value="CDI + 4,0%" />
+  <DataListRow label="Status" value={<Badge variant="success">Ativo</Badge>} />
+</DataList>
+```
+Note: renders `<dl>/<dt>/<dd>` — semantically correct for key-value metadata. Horizontal = 2-col grid; Vertical = stacked.
+
+---
+
+## Divider
+File: `Divider.tsx`  
+Props: `orientation?: "horizontal"|"vertical"`, `label?: string`, `className?: string`  
+Usage: `<Divider />` | `<Divider label="OU" />` | `<Divider orientation="vertical" />`
+
+---
+
+## Pagination
+File: `Pagination.tsx`  
+Props: `totalItems: number`, `pageSize: number`, `currentPage: number` (1-based), `onPageChange: (page) => void`, `showPageSize?: boolean`, `onPageSizeChange?: (size) => void`, `pageSizeOptions?: number[]` (default [25,50,100])  
+Usage: `<Pagination totalItems={247} pageSize={25} currentPage={page} onPageChange={setPage} />`  
+Note: pure controlled component, no internal state. Ellipsis algorithm: always shows page 1, last, and ±1 around current; gaps >2 become `…`.
+
+---
+
+## RadioGroup / RadioItem
+File: `RadioGroup.tsx`  
+Exports: `RadioGroup`, `RadioItem`  
+Props (`RadioGroup`): `value: string`, `onValueChange: (v) => void`, `name?: string`, `layout?: "vertical"|"horizontal"` (default "vertical")  
+Props (`RadioItem`): `value: string`, `label: string`, `description?: string`, `disabled?: boolean`  
+Usage:
+```tsx
+<RadioGroup value={val} onValueChange={setVal} name="suitability">
+  <RadioItem value="conservador" label="Conservador" description="Tolerância baixa a risco." />
+  <RadioItem value="qualificado" label="Qualificado (CVM 175)" />
+</RadioGroup>
+```
+Note: uses `.yvy-radio` CSS class from `index.css`. Native `<input type="radio">` handles arrow-key navigation automatically within the group.
+
+---
+
+## Avatar
+File: `Avatar.tsx`  
+Props: `initials: string` (required), `src?: string`, `size?: "sm"|"md"|"lg"` (default "md"), `shape?: "circle"|"square"` (default "circle"), `alt?: string`  
+Usage: `<Avatar initials="JS" size="md" />` | `<Avatar initials="JS" src="/photo.jpg" />`  
+Note: `src` fails gracefully — `onError` switches to initials. Shape "square" has no rounding (flat aesthetic). Shape "circle" uses `rounded-full`.
+
+---
+
+## Stepper
+File: `Stepper.tsx`  
+Props: `steps: { label: string; description?: string }[]`, `currentStep: number` (0-based), `className?: string`  
+Usage: `<Stepper steps={[{ label: "Dados" }, { label: "Docs" }]} currentStep={1} />`  
+Note: display-only, parent controls `currentStep`. Completed = navy fill + checkmark; current = royal fill + number; upcoming = muted border. Description only shown on the current step.
+
+---
+
+## Switch
+File: `Switch.tsx`  
+Props: `checked: boolean`, `onCheckedChange: (v: boolean) => void`, `disabled?: boolean`, `label?: string`, `id?: string`  
+Usage: `<Switch checked={val} onCheckedChange={setVal} label="Notificações" id="notif" />`  
+Note: uses `role="switch"` on a `<button>` — not an `<input>`. forwardRef on button. When `label` is provided, wraps in `<label>` automatically.
+
+---
+
+## Tooltip
+File: `Tooltip.tsx`  
+Props: `content: string`, `placement?: "top"|"bottom"|"left"|"right"` (default "top"), `children: ReactNode`  
+Usage: `<Tooltip content="Arquivar registro"><Button aria-label="Arquivar">...</Button></Tooltip>`  
+Note: pure CSS — no JS or positioning library. Shows on hover AND keyboard focus-within. Import as `Tooltip` from this file; if you also use Recharts' `Tooltip`, alias one: `import { Tooltip as RechartsTooltip } from "recharts"`.
+
+---
 
 ## Upcoming (Sprint 4)
 - `Stepper.tsx`, `Avatar.tsx`, `Switch.tsx`, `Tooltip.tsx`
