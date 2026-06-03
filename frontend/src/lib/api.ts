@@ -8,23 +8,47 @@ export interface ApiError {
   errors?: Record<string, string[]>;
 }
 
+function isApiError(err: unknown): err is ApiError {
+  return typeof err === 'object' && err !== null && 'title' in err && 'status' in err;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const token = useAuthStore.getState().token;
-  const res = await fetch(`${import.meta.env.VITE_API_URL}${path}`, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...init?.headers,
-    },
-  });
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}${path}`, {
+      ...init,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...init?.headers,
+      },
+    });
 
-  if (!res.ok) {
-    const err: ApiError = await res.json();
-    throw err;
+    if (!res.ok) {
+      let err: ApiError;
+      try {
+        err = await res.json();
+      } catch {
+        err = {
+          type: 'https://httpstatuses.io/' + res.status,
+          title: 'Erro na requisição',
+          status: res.status,
+          detail: res.statusText || undefined,
+        };
+      }
+      throw err;
+    }
+
+    return res.json() as Promise<T>;
+  } catch (err) {
+    if (isApiError(err)) throw err;
+    throw {
+      type: 'network-error',
+      title: 'Serviço indisponível',
+      status: 0,
+      detail: 'Não foi possível conectar ao servidor. Verifique se a API está em execução.',
+    } satisfies ApiError;
   }
-
-  return res.json() as Promise<T>;
 }
 
 export const api = {

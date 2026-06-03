@@ -3,12 +3,19 @@ import { api } from '../lib/api';
 import type { ApiError } from '../lib/api';
 import { queryKeys } from './query-keys';
 
+export type FundStatus = 'Draft' | 'Active' | 'Suspended' | 'Liquidated';
+export type FundType = 'FII' | 'FIC' | 'FIM' | 'FIA';
+
 export interface Fund {
   id: string;
   name: string;
   code: string;
-  status: string;
-  type: string;
+  status: FundStatus;
+  type: FundType;
+  minimumInvestmentAmount?: number;
+  minimumInvestmentCurrency?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export function useFundsQuery() {

@@ -291,5 +291,65 @@ Note: pure CSS — no JS or positioning library. Shows on hover AND keyboard foc
 
 ---
 
-## Upcoming (Sprint 4)
-- `Stepper.tsx`, `Avatar.tsx`, `Switch.tsx`, `Tooltip.tsx`
+## ApiErrorBanner
+File: `ApiErrorBanner.tsx`  
+Props: `error: ApiError | null | undefined`, `className?: string`  
+Usage: `<ApiErrorBanner error={queryError} className="mb-4" />`  
+Note: renders nothing when `error` is falsy. Maps `ApiError.errors` (field map) to a list inside an `Alert variant="error"`. Import `ApiError` from `../../lib/api`.
+
+---
+
+## PageHeader
+File: `PageHeader.tsx`  
+Props: `title: string`, `subtitle?: string`, `breadcrumb?: { label: string; to?: string }[]`, `actions?: ReactNode`, `className?: string`  
+Usage:
+```tsx
+<PageHeader
+  title="Fundos"
+  subtitle="Gestão de fundos de investimento"
+  breadcrumb={[{ label: 'Home', to: '/' }, { label: 'Fundos' }]}
+  actions={<Button size="sm">Novo Fundo</Button>}
+/>
+```
+Note: standard page title block used by every page. `breadcrumb` renders the `Breadcrumb` component. `actions` are right-aligned.
+
+---
+
+## KPIRow
+File: `KPIRow.tsx`  
+Props: `items: StatCard[]` (all StatCard props), `period?: string`, `className?: string`  
+Usage:
+```tsx
+<KPIRow
+  period="Mai/26"
+  items={[
+    { label: 'AUM Total', value: 'R$ 1,51B', delta: { value: '+8,4%', direction: 'up' } },
+    { label: 'Fundos Ativos', value: '4', loading: false },
+  ]}
+/>
+```
+Note: responsive grid — 2 cols on mobile, 4 cols on lg. Renders a row of `StatCard` components with a shared `period` label above.
+
+---
+
+## ListToolbar
+File: `ListToolbar.tsx`  
+Props: `search?: { value, onChange, placeholder }`, `filters?: ReactNode`, `resultCount?: number`, `resultLabel?: string`, `actions?: ReactNode`, `className?: string`  
+Usage:
+```tsx
+<ListToolbar
+  search={{ value: q, onChange: setQ, placeholder: 'Buscar por nome...' }}
+  filters={<Select value={type} onChange={...}>...</Select>}
+  resultCount={247}
+  resultLabel="fundos"
+  actions={<Button size="sm">Exportar</Button>}
+/>
+```
+Note: `actions` are `ml-auto` (right-aligned). `resultCount` renders a muted count label. Use above any paginated Table.
+
+---
+
+## Formatters (`src/lib/formatters.ts`)
+Exports: `formatBRL(value: number): string`, `formatPercent(value: number, decimals?: number): string`, `formatCompactBRL(value: number): string`  
+Usage: `formatBRL(1234567.89)` → `"R$ 1.234.567,89"` | `formatPercent(14.2)` → `"14,20%"` | `formatCompactBRL(1510000000)` → `"R$ 1,5B"`  
+Note: all use `Intl.NumberFormat('pt-BR')`. Use `formatCompactBRL` for StatCard/KPIRow values. Never use `float`/`double` math — format only at display layer.
