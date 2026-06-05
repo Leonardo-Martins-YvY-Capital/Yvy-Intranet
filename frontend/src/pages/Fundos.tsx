@@ -6,6 +6,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { ListToolbar } from '../components/ui/ListToolbar';
 import { ApiErrorBanner } from '../components/ui/ApiErrorBanner';
 import { Button } from '../components/ui/Button';
+import { RoleGate } from '../components/auth/RoleGate';
 import { Badge } from '../components/ui/Badge';
 import { Select } from '../components/ui/Select';
 import { Skeleton } from '../components/ui/Skeleton';
@@ -67,9 +68,11 @@ export default function Fundos() {
         title="Fundos"
         subtitle="Gestão de fundos de investimento"
         actions={
-          <Button size="sm" onClick={() => navigate({ to: '/fundos/novo' })}>
-            Novo Fundo
-          </Button>
+          <RoleGate roles={['Operator', 'Admin']}>
+            <Button size="sm" onClick={() => navigate({ to: '/fundos/novo' })}>
+              Novo Fundo
+            </Button>
+          </RoleGate>
         }
       />
 
@@ -124,9 +127,11 @@ export default function Fundos() {
           }
           action={
             funds?.length === 0 ? (
-              <Button size="sm" onClick={() => navigate({ to: '/fundos/novo' })}>
-                Novo Fundo
-              </Button>
+              <RoleGate roles={['Operator', 'Admin']}>
+                <Button size="sm" onClick={() => navigate({ to: '/fundos/novo' })}>
+                  Novo Fundo
+                </Button>
+              </RoleGate>
             ) : undefined
           }
         />

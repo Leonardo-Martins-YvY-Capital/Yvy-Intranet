@@ -1,32 +1,44 @@
 import { create } from 'zustand';
-import { devtools, persist, createJSONStorage } from 'zustand/middleware';
+import { devtools } from 'zustand/middleware';
+import type { IdentityClaims, Role } from '../lib/auth/roles';
 
 interface AuthState {
   userId: string | null;
-  token: string | null;
-  role: 'admin' | 'viewer' | null;
-  setSession: (userId: string, token: string, role: AuthState['role']) => void;
-  clearSession: () => void;
+  displayName: string | null;
+  email: string | null;
+  roles: Role[];
+  setIdentity: (identity: IdentityClaims) => void;
+  clearIdentity: () => void;
 }
 
+// Derived identity only — MSAL owns the token cache, so we never persist tokens here
+// (duplicating MSAL's cache invites staleness). Roles are kept so the UI can gate without an
+// API round-trip; the API remains the authorization boundary.
 export const useAuthStore = create<AuthState>()(
   devtools(
-    persist(
-      (set) => ({
-        userId: null,
-        token: null,
-        role: null,
-        setSession: (userId, token, role) =>
-          set({ userId, token, role }, false, 'auth/setSession'),
-        clearSession: () =>
-          set({ userId: null, token: null, role: null }, false, 'auth/clearSession'),
-      }),
-      {
-        name: 'yvy-auth',
-        storage: createJSONStorage(() => sessionStorage),
-        partialize: (s) => ({ userId: s.userId, token: s.token, role: s.role }),
-      }
-    ),
-    { name: 'AuthStore' }
-  )
+    (set) => ({
+      userId: null,
+      displayName: null,
+      email: null,
+      roles: [],
+      setIdentity: (identity) =>
+        set(
+          {
+            userId: identity.userId,
+            displayName: identity.displayName,
+            email: identity.email,
+            roles: identity.roles,
+          },
+          false,
+          'auth/setIdentity',
+        ),
+      clearIdentity: () =>
+        set(
+          { userId: null, displayName: null, email: null, roles: [] },
+          false,
+          'auth/clearIdentity',
+        ),
+    }),
+    { name: 'AuthStore' },
+  ),
 );
