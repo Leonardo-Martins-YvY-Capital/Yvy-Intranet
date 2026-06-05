@@ -1,19 +1,26 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Yvy.Api.IntegrationTests.Infrastructure;
+using Yvy.Domain.Aggregates.Users;
+using Yvy.Infrastructure.Persistence;
 
 namespace Yvy.Api.IntegrationTests.Funds;
 
 public sealed class FundsEndpointTests : IClassFixture<YvyApiFactory>, IAsyncLifetime
 {
     private readonly YvyApiFactory _factory;
-    private readonly HttpClient _client;
+    private readonly HttpClient _reader; // Viewer — may read
+    private readonly HttpClient _writer; // Operator — may create
 
     public FundsEndpointTests(YvyApiFactory factory)
     {
         _factory = factory;
-        _client = factory.CreateClient();
+        _reader = factory.CreateClientAs([Role.Viewer]);
+        _writer = factory.CreateClientAs([Role.Operator]);
     }
 
     public Task InitializeAsync() => _factory.ResetDatabaseAsync();
@@ -23,7 +30,7 @@ public sealed class FundsEndpointTests : IClassFixture<YvyApiFactory>, IAsyncLif
     [Fact]
     public async Task GET_funds_ReturnsEmptyList_WhenNoFundsExist()
     {
-        var response = await _client.GetAsync("/api/v1/funds");
+        var response = await _reader.GetAsync("/api/v1/funds");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var funds = await response.Content.ReadFromJsonAsync<List<object>>();
@@ -42,7 +49,7 @@ public sealed class FundsEndpointTests : IClassFixture<YvyApiFactory>, IAsyncLif
             minimumInvestmentCurrency = "BRL"
         };
 
-        var response = await _client.PostAsJsonAsync("/api/v1/funds", request);
+        var response = await _writer.PostAsJsonAsync("/api/v1/funds", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         var id = await response.Content.ReadFromJsonAsync<Guid>();
@@ -60,8 +67,8 @@ public sealed class FundsEndpointTests : IClassFixture<YvyApiFactory>, IAsyncLif
             minimumInvestmentAmount = 1000m
         };
 
-        await _client.PostAsJsonAsync("/api/v1/funds", request);
-        var response = await _client.PostAsJsonAsync("/api/v1/funds", request);
+        await _writer.PostAsJsonAsync("/api/v1/funds", request);
+        var response = await _writer.PostAsJsonAsync("/api/v1/funds", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
@@ -77,7 +84,7 @@ public sealed class FundsEndpointTests : IClassFixture<YvyApiFactory>, IAsyncLif
             minimumInvestmentAmount = 1000m
         };
 
-        var response = await _client.PostAsJsonAsync("/api/v1/funds", request);
+        var response = await _writer.PostAsJsonAsync("/api/v1/funds", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
     }
@@ -94,21 +101,66 @@ public sealed class FundsEndpointTests : IClassFixture<YvyApiFactory>, IAsyncLif
             minimumInvestmentCurrency = "BRL"
         };
 
-        var createResponse = await _client.PostAsJsonAsync("/api/v1/funds", createRequest);
+        var createResponse = await _writer.PostAsJsonAsync("/api/v1/funds", createRequest);
         var id = await createResponse.Content.ReadFromJsonAsync<Guid>();
 
-        var getResponse = await _client.GetAsync($"/api/v1/funds/{id}");
+        var getResponse = await _reader.GetAsync($"/api/v1/funds/{id}");
 
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        var fund = await getResponse.Content.ReadFromJsonAsync<dynamic>();
-        fund.Should().NotBeNull();
+        var fund = await getResponse.Content.ReadFromJsonAsync<JsonElement>();
+        fund.GetProperty("code").GetString().Should().Be("MXRF11");
     }
 
     [Fact]
     public async Task GET_funds_id_Returns404_WhenFundNotFound()
     {
-        var response = await _client.GetAsync($"/api/v1/funds/{Guid.NewGuid()}");
+        var response = await _reader.GetAsync($"/api/v1/funds/{Guid.NewGuid()}");
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    // ── Auth (Phase 6) ──────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GET_funds_WithoutAuth_Returns401()
+    {
+        var anonymous = _factory.CreateClient();
+
+        var response = await anonymous.GetAsync("/api/v1/funds");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task POST_funds_AsViewer_Returns403()
+    {
+        var request = new
+        {
+            code = "YVYQ11",
+            name = "Some Fund",
+            fundType = "FII",
+            minimumInvestmentAmount = 1000m
+        };
+
+        var response = await _reader.PostAsJsonAsync("/api/v1/funds", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task AuthenticatedRequest_ProvisionsApplicationUser_Once()
+    {
+        const string oid = "22222222-2222-2222-2222-222222222222";
+        var client = _factory.CreateClientAs([Role.Viewer], oid: oid, email: "provision.test@yvy.capital");
+
+        // Two authenticated calls — JIT provisioning must be idempotent.
+        await client.GetAsync("/api/v1/funds");
+        await client.GetAsync("/api/v1/funds");
+
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<YvyDbContext>();
+        var count = await db.ApplicationUsers.CountAsync(u => u.EntraObjectId.Value == oid);
+
+        count.Should().Be(1);
     }
 }

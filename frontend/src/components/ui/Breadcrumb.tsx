@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from '@tanstack/react-router';
 import { cn } from "../../lib/utils";
 
 interface BreadcrumbItem {
@@ -41,7 +41,8 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
                 </span>
               ) : (
                 <Link
-                  to={item.to}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  to={item.to as any}
                   className="text-xs font-barlowcn uppercase tracking-wider text-yvy-navy/50 hover:text-yvy-navy yvy-transition"
                 >
                   {item.label}

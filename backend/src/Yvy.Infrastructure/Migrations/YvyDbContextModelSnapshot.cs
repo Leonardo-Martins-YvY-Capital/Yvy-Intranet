@@ -98,6 +98,50 @@ namespace Yvy.Infrastructure.Migrations
                     b.ToTable("investors", (string)null);
                 });
 
+            modelBuilder.Entity("Yvy.Domain.Aggregates.Users.ApplicationUser", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("display_name");
+
+                    b.Property<DateTime?>("LastLoginAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_login_at");
+
+                    b.Property<string>("Roles")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("roles");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Upn")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("upn");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("application_users", (string)null);
+                });
+
             modelBuilder.Entity("Yvy.Infrastructure.Outbox.OutboxMessage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -195,6 +239,28 @@ namespace Yvy.Infrastructure.Migrations
 
             modelBuilder.Entity("Yvy.Domain.Aggregates.Investors.Investor", b =>
                 {
+                    b.OwnsOne("Yvy.Domain.ValueObjects.Email", "Email", b1 =>
+                        {
+                            b1.Property<Guid>("InvestorId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasMaxLength(320)
+                                .HasColumnType("character varying(320)")
+                                .HasColumnName("email");
+
+                            b1.HasKey("InvestorId");
+
+                            b1.HasIndex("Value")
+                                .HasDatabaseName("ix_investors_email");
+
+                            b1.ToTable("investors");
+
+                            b1.WithOwner()
+                                .HasForeignKey("InvestorId");
+                        });
+
                     b.OwnsOne("Yvy.Domain.ValueObjects.Cnpj", "Cnpj", b1 =>
                         {
                             b1.Property<Guid>("InvestorId")
@@ -233,9 +299,19 @@ namespace Yvy.Infrastructure.Migrations
                                 .HasForeignKey("InvestorId");
                         });
 
+                    b.Navigation("Cnpj");
+
+                    b.Navigation("Cpf");
+
+                    b.Navigation("Email")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Yvy.Domain.Aggregates.Users.ApplicationUser", b =>
+                {
                     b.OwnsOne("Yvy.Domain.ValueObjects.Email", "Email", b1 =>
                         {
-                            b1.Property<Guid>("InvestorId")
+                            b1.Property<Guid>("ApplicationUserId")
                                 .HasColumnType("uuid");
 
                             b1.Property<string>("Value")
@@ -244,22 +320,41 @@ namespace Yvy.Infrastructure.Migrations
                                 .HasColumnType("character varying(320)")
                                 .HasColumnName("email");
 
-                            b1.HasKey("InvestorId");
+                            b1.HasKey("ApplicationUserId");
 
-                            b1.HasIndex("Value")
-                                .HasDatabaseName("ix_investors_email");
-
-                            b1.ToTable("investors");
+                            b1.ToTable("application_users");
 
                             b1.WithOwner()
-                                .HasForeignKey("InvestorId");
+                                .HasForeignKey("ApplicationUserId");
                         });
 
-                    b.Navigation("Cnpj");
+                    b.OwnsOne("Yvy.Domain.ValueObjects.EntraObjectId", "EntraObjectId", b1 =>
+                        {
+                            b1.Property<Guid>("ApplicationUserId")
+                                .HasColumnType("uuid");
 
-                    b.Navigation("Cpf");
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasMaxLength(36)
+                                .HasColumnType("character varying(36)")
+                                .HasColumnName("entra_object_id");
+
+                            b1.HasKey("ApplicationUserId");
+
+                            b1.HasIndex("Value")
+                                .IsUnique()
+                                .HasDatabaseName("ix_application_users_entra_object_id");
+
+                            b1.ToTable("application_users");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ApplicationUserId");
+                        });
 
                     b.Navigation("Email")
+                        .IsRequired();
+
+                    b.Navigation("EntraObjectId")
                         .IsRequired();
                 });
 #pragma warning restore 612, 618

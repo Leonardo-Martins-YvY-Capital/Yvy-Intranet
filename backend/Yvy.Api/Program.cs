@@ -13,6 +13,9 @@ using Yvy.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// User-secrets hold the real EntraId values (TenantId/ClientId/Audience); appsettings has placeholders.
+builder.Configuration.AddUserSecrets<Program>(optional: true);
+
 // ── Serilog ───────────────────────────────────────────────────────────────────
 builder.Host.UseSerilog((ctx, config) =>
     config
@@ -23,6 +26,9 @@ builder.Host.UseSerilog((ctx, config) =>
 // ── Application & Infrastructure layers ──────────────────────────────────────
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// ── Authentication & authorization (Entra ID) ────────────────────────────────
+builder.Services.AddEntraAuthentication(builder.Configuration);
 
 // ── API versioning ────────────────────────────────────────────────────────────
 builder.Services.AddApiVersioning(options =>
@@ -89,6 +95,8 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 app.UseCors("YvyFrontend");
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseRateLimiter();
 
 if (app.Environment.IsDevelopment())

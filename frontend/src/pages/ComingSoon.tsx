@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { useRouterState } from '@tanstack/react-router';
 import { PageHeader } from '../components/ui/PageHeader';
 
 const SECTION_LABELS: Record<string, string> = {
@@ -8,7 +8,7 @@ const SECTION_LABELS: Record<string, string> = {
 };
 
 export default function ComingSoon() {
-  const { pathname } = useLocation();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const label = SECTION_LABELS[pathname] ?? 'Página';
 
   return (

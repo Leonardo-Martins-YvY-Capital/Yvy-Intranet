@@ -1,13 +1,13 @@
-import { NavLink } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 import { cn } from '../lib/utils';
 import { useUIStore } from '../store/ui.store';
 import { Logo } from '../components/ui/Logo';
 
 const NAV_ITEMS = [
   {
-    to: '/',
+    to: '/' as const,
     label: 'Dashboard',
-    end: true,
+    exact: true,
     icon: (
       <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 shrink-0">
         <path d="M2 10a8 8 0 1 1 16 0A8 8 0 0 1 2 10zm3.5-3.5a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1H6a.5.5 0 0 1-.5-.5zm0 3a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1H6a.5.5 0 0 1-.5-.5zm0 3a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1H6a.5.5 0 0 1-.5-.5z" />
@@ -15,7 +15,7 @@ const NAV_ITEMS = [
     ),
   },
   {
-    to: '/fundos',
+    to: '/fundos' as const,
     label: 'Fundos',
     icon: (
       <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 shrink-0">
@@ -24,7 +24,7 @@ const NAV_ITEMS = [
     ),
   },
   {
-    to: '/investidores',
+    to: '/investidores' as const,
     label: 'Investidores',
     icon: (
       <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 shrink-0">
@@ -33,7 +33,7 @@ const NAV_ITEMS = [
     ),
   },
   {
-    to: '/relatorios',
+    to: '/relatorios' as const,
     label: 'Relatórios',
     icon: (
       <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 shrink-0">
@@ -42,7 +42,7 @@ const NAV_ITEMS = [
     ),
   },
   {
-    to: '/compliance',
+    to: '/compliance' as const,
     label: 'Compliance',
     icon: (
       <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 shrink-0">
@@ -54,7 +54,7 @@ const NAV_ITEMS = [
 
 const DEV_ITEMS = [
   {
-    to: '/design-system',
+    to: '/design-system' as const,
     label: 'Design System',
     icon: (
       <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 shrink-0">
@@ -67,14 +67,10 @@ const DEV_ITEMS = [
 export function Sidebar() {
   const { sidebarOpen, toggleSidebar } = useUIStore();
 
-  const linkClass = ({ isActive }: { isActive: boolean }) =>
-    cn(
-      'flex items-center py-2 rounded text-sm font-barlowcn uppercase tracking-widest yvy-transition',
-      sidebarOpen ? 'gap-x-3 px-3' : 'justify-center px-0',
-      isActive
-        ? 'bg-white/15 text-white'
-        : 'text-white/55 hover:bg-white/10 hover:text-white/85'
-    );
+  const baseLinkClass = cn(
+    'flex items-center py-2 rounded text-sm font-barlowcn uppercase tracking-widest yvy-transition',
+    sidebarOpen ? 'gap-x-3 px-3' : 'justify-center px-0'
+  );
 
   const labelClass = cn(
     'whitespace-nowrap yvy-transition overflow-hidden',
@@ -95,7 +91,7 @@ export function Sidebar() {
           sidebarOpen ? 'justify-between' : 'justify-center'
         )}
       >
-        <NavLink
+        <Link
           to="/"
           className={cn(
             'flex items-center overflow-hidden yvy-transition',
@@ -103,7 +99,7 @@ export function Sidebar() {
           )}
         >
           <Logo width={72} height={32} fillColor="#ffffff" className="shrink-0" />
-        </NavLink>
+        </Link>
         <button
           onClick={toggleSidebar}
           aria-label={sidebarOpen ? 'Recolher menu' : 'Expandir menu'}
@@ -124,10 +120,16 @@ export function Sidebar() {
         <ul className="space-y-0.5 px-2">
           {NAV_ITEMS.map((item) => (
             <li key={item.to}>
-              <NavLink to={item.to} end={item.end} className={linkClass}>
+              <Link
+                to={item.to}
+                activeOptions={item.exact ? { exact: true } : undefined}
+                className={baseLinkClass}
+                activeProps={{ className: 'bg-white/15 text-white' }}
+                inactiveProps={{ className: 'text-white/55 hover:bg-white/10 hover:text-white/85' }}
+              >
                 {item.icon}
                 <span className={labelClass}>{item.label}</span>
-              </NavLink>
+              </Link>
             </li>
           ))}
         </ul>
@@ -143,10 +145,15 @@ export function Sidebar() {
         <ul className="space-y-0.5">
           {DEV_ITEMS.map((item) => (
             <li key={item.to}>
-              <NavLink to={item.to} className={linkClass}>
+              <Link
+                to={item.to}
+                className={baseLinkClass}
+                activeProps={{ className: 'bg-white/15 text-white' }}
+                inactiveProps={{ className: 'text-white/55 hover:bg-white/10 hover:text-white/85' }}
+              >
                 {item.icon}
                 <span className={labelClass}>{item.label}</span>
-              </NavLink>
+              </Link>
             </li>
           ))}
         </ul>

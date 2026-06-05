@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@tanstack/react-router';
 import { useFundsQuery, type FundStatus, type FundType } from '../hooks/useFundsQuery';
 import { formatBRL } from '../lib/formatters';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -67,7 +67,7 @@ export default function Fundos() {
         title="Fundos"
         subtitle="Gestão de fundos de investimento"
         actions={
-          <Button size="sm" onClick={() => navigate('/fundos/novo')}>
+          <Button size="sm" onClick={() => navigate({ to: '/fundos/novo' })}>
             Novo Fundo
           </Button>
         }
@@ -124,7 +124,7 @@ export default function Fundos() {
           }
           action={
             funds?.length === 0 ? (
-              <Button size="sm" onClick={() => navigate('/fundos/novo')}>
+              <Button size="sm" onClick={() => navigate({ to: '/fundos/novo' })}>
                 Novo Fundo
               </Button>
             ) : undefined
@@ -145,7 +145,7 @@ export default function Fundos() {
             {filtered.map((fund) => (
               <TableRow
                 key={fund.id}
-                onRowClick={() => navigate(`/fundos/${fund.id}`)}
+                onRowClick={() => navigate({ to: '/fundos/$id', params: { id: fund.id } })}
               >
                 <TableCell>
                   <span className="font-barlowcn font-semibold tracking-wide text-yvy-navy">

@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet } from '@tanstack/react-router';
 import { cn } from '../lib/utils';
 import { useUIStore } from '../store/ui.store';
 import { Sidebar } from './Sidebar';

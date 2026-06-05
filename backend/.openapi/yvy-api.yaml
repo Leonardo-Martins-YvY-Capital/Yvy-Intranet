@@ -20,12 +20,19 @@ tags:
   - name: Funds
     description: Fundo management operations
 
+# Every operation requires a valid Entra ID access token by default.
+# Public exceptions (e.g. the Graph email webhook) override with `security: []` per operation.
+security:
+  - entraId: []
+
 paths:
+  # ════════════════════════════════ Funds ════════════════════════════════
   /api/v1/funds:
     get:
       operationId: ListFunds
       tags: [Funds]
       summary: List all funds
+      description: Requires authentication (any assigned role — Viewer or above).
       responses:
         "200":
           description: List of funds
@@ -35,6 +42,8 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/FundResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -42,6 +51,7 @@ paths:
       operationId: CreateFund
       tags: [Funds]
       summary: Create a new fund
+      description: Requires the **Operator** or **Admin** role.
       requestBody:
         required: true
         content:
@@ -66,6 +76,10 @@ paths:
                 type: string
                 format: uuid
                 description: ID of the created fund
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "400":
           $ref: "#/components/responses/BadRequest"
         "409":
@@ -80,6 +94,7 @@ paths:
       operationId: GetFundById
       tags: [Funds]
       summary: Get fund by ID
+      description: Requires authentication (any assigned role — Viewer or above).
       parameters:
         - name: id
           in: path
@@ -94,6 +109,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/FundResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
         "500":
@@ -101,6 +118,7 @@ paths:
 
 components:
   schemas:
+    # ── Funds ──
     FundResponse:
       type: object
       required:
@@ -180,6 +198,7 @@ components:
           default: "BRL"
           example: "BRL"
 
+    # ── Shared ──
     ProblemDetails:
       type: object
       properties:
@@ -196,6 +215,18 @@ components:
           type: string
 
   responses:
+    Unauthorized:
+      description: Missing or invalid access token
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+    Forbidden:
+      description: Authenticated, but the token lacks the required role
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
     BadRequest:
       description: Bad request
       content:
@@ -226,3 +257,15 @@ components:
         application/problem+json:
           schema:
             $ref: "#/components/schemas/ProblemDetails"
+
+  # ════════════════════════════════ Security ════════════════════════════════
+  securitySchemes:
+    entraId:
+      type: openIdConnect
+      description: >-
+        Microsoft Entra ID (Azure AD) via OIDC. Send the user's **access token** (not the id_token)
+        as `Authorization: Bearer <token>`. The token's audience must be the Yvy.Intranet.Api app
+        (`api://<api-client-id>`), and it carries a `roles` claim drawn from
+        { Approver, Operator, Viewer, Admin }. Replace `<tenant-id>` per environment — real tenant
+        values are never committed (kept in appsettings placeholders / user-secrets).
+      openIdConnectUrl: https://login.microsoftonline.com/<tenant-id>/v2.0/.well-known/openid-configuration

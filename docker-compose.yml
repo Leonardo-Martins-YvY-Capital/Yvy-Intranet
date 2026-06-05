@@ -1,0 +1,30 @@
+# Local-development PostgreSQL for the Yvy intranet API.
+# Matches the dev connection string in backend/Yvy.Api/appsettings.Development.json
+# (Host=localhost;Port=5432;Database=yvy_dev;Username=postgres;Password=postgres).
+#
+#   docker compose up -d
+#   dotnet ef database update --project backend/src/Yvy.Infrastructure --startup-project backend/Yvy.Api
+#   dotnet run --project backend/Yvy.Api
+#
+# NOTE: the integration tests do NOT use this database — they spin up their own ephemeral
+# Postgres via Testcontainers and apply migrations automatically.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: yvy-postgres-dev
+    environment:
+      POSTGRES_DB: yvy_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - yvy_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d yvy_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  yvy_pgdata:

@@ -1,15 +1,26 @@
 # Project: Yvy Capital Digital Systems
 
-Shared agent instructions are in `AGENTS.md`. Use `.agents/skills/INDEX.md` as the canonical skills index, then read the matching `.agents/skills/<skill-name>/SKILL.md` before acting.
+## Skill Protocol
+
+Before writing code for any task, check `frontend/.agents/skills/INDEX.md` and read the matching SKILL.md. This prevents common mistakes documented by library authors and keeps generated code consistent with project patterns.
+
+**When to load a skill:** any task touching a library listed in INDEX.md, or when uncertain about the correct API or pattern.
+
+**How:**
+1. Read `frontend/.agents/skills/INDEX.md` — find the relevant skill path
+2. Paths in that file are relative to `frontend/`; prepend it when using the Read tool
+3. For sub-tasks (e.g. adding search params inside a routing task), also read the sub-skill
+
+Skills sourced from `node_modules/` update with `npm update` — always use the node_modules path, never a copied snapshot.
 
 ## Structure
 
 - `frontend/` — React 19 + TypeScript + Vite + Tailwind CSS 4
-- `backend/` — .NET 9 solution (`Yvy.sln`)
+- `backend/` — .NET 10 solution (`Yvy.sln`)
   - `src/Yvy.Domain/` — DDD aggregates, value objects, domain events, repository interfaces (no external deps)
   - `src/Yvy.Application/` — CQRS (MediatR), use-case handlers, FluentValidation, ErrorOr
   - `src/Yvy.Infrastructure/` — EF Core + Npgsql, repository implementations, Outbox (Quartz.NET)
-  - `Yvy.Api/` — ASP.NET Core 9 minimal API, endpoints, Serilog, Scalar UI
+  - `Yvy.Api/` — ASP.NET Core 10 minimal API, endpoints, Serilog, Scalar UI
   - `tests/Yvy.Domain.Tests/` — pure unit tests (value objects, aggregates)
   - `tests/Yvy.Application.Tests/` — handler unit tests (NSubstitute mocks)
   - `tests/Yvy.Api.IntegrationTests/` — Testcontainers PostgreSQL + WebApplicationFactory

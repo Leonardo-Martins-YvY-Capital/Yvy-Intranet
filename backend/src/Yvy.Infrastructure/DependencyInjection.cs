@@ -24,6 +24,7 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IFundRepository, FundRepository>();
         services.AddScoped<IInvestorRepository, InvestorRepository>();
+        services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
 
         services.AddQuartz(q =>
         {

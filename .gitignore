@@ -27,3 +27,6 @@ obj/
 *.ntvs*
 *.njsproj
 *.sw?
+
+# Documents
+.pdf 
