@@ -160,7 +160,7 @@ DI also registers: the typed `HttpClient` for Graph, the gateway (simulated vs r
 
 ## 10. Open Questions
 
-- **Entra provisioning:** app registration, `Mail.Read` admin consent, public `NotificationUrl`, secret storage — IT-dependent; tracked but not blocking this chunk.
+- **Entra provisioning:** the `Yvy.Graph.Worker` registration + `Mail.Read` (admin-consented) + client secret were **created in Phase 0** ([`../entra-id-sso/phase-0-entra-setup.md`](../entra-id-sso/phase-0-entra-setup.md) §6); wire via user-secrets. Still IT-dependent: the public prod `NotificationUrl`. Not blocking (simulated gateway covers dev/test).
 - **ProcessType routing:** how to decide Contas a Pagar vs Reembolsos from an inbound email (separate addresses? subject convention? folder?). Needs a business rule.
 - **Attachment storage** target + retention (shared with `kanban-card-spec.md` §11).
 - **Graph expiry/renewal** exact limits and the lifecycle-notification channel — confirm via docs at build time.

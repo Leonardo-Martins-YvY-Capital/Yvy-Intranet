@@ -1,10 +1,15 @@
 # Financial Process Kanban
 
 > Internal Kanban boards for Yvy Capital's email-driven financial processes — starting with **Contas a Pagar** and **Reembolsos Internos** — built in-house instead of rented from a no-code tool.
+>
+> **Implementation docs:** [`implementation-plan.md`](./implementation-plan.md) (SDD phases + slice order),
+> [`kanban-card-spec.md`](./kanban-card-spec.md) (domain), [`email-ingestion-spec.md`](./email-ingestion-spec.md)
+> (ingestion), [`frontend-board-spec.md`](./frontend-board-spec.md) (board UI), and
+> [ADR-002](../decisions/ADR-002-kanban-purpose-built-boards.md) (build-vs-buy decision).
 
 | | |
 |---|---|
-| **Status** | Discovery complete — pending implementation plan |
+| **Status** | Discovery complete — **implementation plan ready** ([`implementation-plan.md`](./implementation-plan.md)); SSO dependency shipped |
 | **Date** | 2026-06-03 |
 | **Author** | leonardo.martins@yvy.capital |
 | **Stage** | V1 scope confirmed |
@@ -77,7 +82,7 @@ Investor onboarding / KYC, fund deal flow, compliance / CVM review queue, capita
 | Decision | Choice | Rationale |
 |---|---|---|
 | **Mailbox & ingestion** | Microsoft 365 mailbox; **Graph API + webhooks** | Domain is on M365; real-time push; IMAP polling is the fallback if Graph access is restricted. |
-| **Auth / identity** | **Microsoft Entra ID SSO (M365 / OIDC)** | Approvals need real identity. Reuses the Entra app registration created for Graph email ingestion; single sign-on; real roles. Needs an IT/Entra config step. |
+| **Auth / identity** | **Microsoft Entra ID SSO (M365 / OIDC)** | Approvals need real identity. ✅ **Shipped** (ADR-001): consume `ICurrentUserProvider` + the `Approver` role — no further auth build needed. |
 | **Card movement** | **Action-driven transitions** | Buttons (Approve / Reject / Mark Paid) trigger guarded transitions the backend validates — same pattern as `Fund.Activate()`. Safest for a money workflow; no drag-drop library needed. |
 | **Phases** | **Proposed defaults, refined later** | Processes still being learned; defaults are coded now and easy to adjust. See §5. |
 | **V1 finish line** | Ingest → visualize → card detail → approval | Ships real value fast. |
@@ -193,6 +198,10 @@ Kanban UI and accounts-payable workflow references gathered during discovery:
 ---
 
 ## 11. Recommended Next Steps
+
+> Superseded by the detailed [`implementation-plan.md`](./implementation-plan.md) (SDD phases + slice
+> sequencing) and [ADR-002](../decisions/ADR-002-kanban-purpose-built-boards.md). SSO (step 2) is now
+> **shipped**. Original discovery sketch retained below:
 
 1. Spec the `KanbanCard` aggregate + phases (apply **spec-driven-development**).
 2. Stand up the Entra ID app registration with IT (auth + Graph mail scopes).

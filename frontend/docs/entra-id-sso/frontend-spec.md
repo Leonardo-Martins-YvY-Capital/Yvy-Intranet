@@ -6,7 +6,7 @@
 
 | | |
 |---|---|
-| **Status** | Draft for review — no code yet |
+| **Status** | ✅ Implemented — MSAL; lint/build green, interactive sign-in verified. As-built notes in [`index.md`](./index.md) §8. |
 | **Stack** | React 19, TanStack Router/Query, Zustand, Tailwind 4 |
 | **Templates mirrored** | `src/lib/api.ts`, `src/store/auth.store.ts`, `src/router.ts`, `src/layouts/Sidebar.tsx` |
 | **New packages** | `@azure/msal-browser`, `@azure/msal-react` |

@@ -15,7 +15,7 @@
 
 A `KanbanCard` represents **one financial request** (a bill to pay, or an internal reimbursement) that arrives by email and moves through a fixed, **action-driven** sequence of phases until it is paid/reimbursed or rejected. This spec defines the aggregate, its phases and guarded transitions, its events, and the application commands/queries that operate on it.
 
-Decisions inherited from `index.md`: build two purpose-built boards **sharing primitives** (not a generic engine); **action-driven** transitions guarded by the backend (no free drag-and-drop); phases are **coded, not data-driven**; identity for approvals comes from Entra ID SSO (a later chunk — this spec assumes an `ICurrentUserProvider`).
+Decisions inherited from `index.md` / [ADR-002](../decisions/ADR-002-kanban-purpose-built-boards.md): build two purpose-built boards **sharing primitives** (not a generic engine); **action-driven** transitions guarded by the backend (no free drag-and-drop); phases are **coded, not data-driven**; identity for approvals comes from Entra ID SSO (**shipped** — ADR-001; this spec consumes the existing `ICurrentUserProvider` + `Approver` role).
 
 **In scope:** the aggregate, phase machine, transition policy, events, errors, and the CQRS surface.
 **Out of scope:** email ingestion (see companion spec), Asaas payment (V2), AI metadata extraction (V2), the frontend board.
@@ -172,7 +172,7 @@ Names + responsibilities (code comes in the build step), mirroring `Application/
 
 **DTOs:** `CardResponse`, `CardDetailResponse`, `BoardColumnResponse`.
 
-**Abstractions introduced:** `ICurrentUserProvider` (current user id + roles) and `IKanbanCardRepository` (`GetByIdAsync`, `ExistsByMessageIdAsync`, `ListByProcessAsync`, `AddAsync`).
+**Abstractions:** `ICurrentUserProvider` (current user id + roles) **already exists from the SSO chunk** — consume it (don't re-introduce). Only `IKanbanCardRepository` (`GetByIdAsync`, `ExistsByMessageIdAsync`, `ListByProcessAsync`, `AddAsync`) is new.
 
 ---
 
@@ -180,5 +180,5 @@ Names + responsibilities (code comes in the build step), mirroring `Application/
 
 - Final metadata-panel fields per process (see `index.md` §6/§9).
 - Raw-body & attachment **storage** target (DB column vs blob store) and retention.
-- Exact Entra role/group → "manager/approver" mapping (resolved with the SSO chunk).
+- Entra group → App Role mapping (which groups are `Approver`) — the `Approver` **App Role itself ships** with SSO; the group-membership mapping is an ops/IT policy decision.
 - Whether operators may move cards *backwards* (e.g. `AguardandoAprovacao → Triagem`) — current policy is forward-only + reject/cancel.
