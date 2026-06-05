@@ -30,7 +30,9 @@ const authLayoutRoute = createRoute({
   id: '_authenticated',
   component: RootLayout,
   beforeLoad: () => {
-    if (!msalInstance.getActiveAccount()) {
+    // Check all accounts (not just the active one): after a redirect login the account is in the
+    // cache before setActiveAccount runs, so this is the reliable "is authenticated" signal.
+    if (msalInstance.getAllAccounts().length === 0) {
       throw redirect({ to: '/login' });
     }
   },

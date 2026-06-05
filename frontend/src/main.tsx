@@ -12,9 +12,10 @@ import { queryClient } from './lib/queryClient.ts'
 import { msalInstance } from './lib/auth/msalInstance.ts'
 
 async function bootstrap() {
-  // MSAL must be initialized before any use, and the redirect response processed on return.
+  // MSAL must be initialized before any use. The redirect response is processed by <MsalProvider>
+  // (calling handleRedirectPromise here too would double-consume the request cache and throw
+  // no_token_request_cache_error). App gates rendering until inProgress === None.
   await msalInstance.initialize()
-  await msalInstance.handleRedirectPromise()
   const accounts = msalInstance.getAllAccounts()
   if (accounts.length > 0) msalInstance.setActiveAccount(accounts[0])
 
