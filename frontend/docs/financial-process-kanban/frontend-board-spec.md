@@ -74,6 +74,8 @@ client-side locking in V1; add ETag/row-version optimistic concurrency only if r
   phase label + count; cards render as `Card`s with Title, Payee, **`Amount`** (`formatBRL`), DueDate, a
   status `Badge`, and (if any) an attachment count. `Skeleton` while loading; `EmptyState` per empty
   column.
+- **Card order is server-provided** — V1 derived sort (Contas a Pagar by `DueDate`, Reembolsos by
+  `ReceivedAt`; see `kanban-card-spec.md` §10). The client renders it as-is; **no manual reorder in V1**.
 - A list/table view toggle (`index.md` §10 "support more than the board") is a nice-to-have — deferred.
 
 ## 5. Card detail (Modal or nested route)

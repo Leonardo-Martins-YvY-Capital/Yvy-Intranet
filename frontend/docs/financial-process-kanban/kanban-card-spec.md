@@ -174,6 +174,21 @@ Names + responsibilities (code comes in the build step), mirroring `Application/
 
 **Abstractions:** `ICurrentUserProvider` (current user id + roles) **already exists from the SSO chunk** — consume it (don't re-introduce). Only `IKanbanCardRepository` (`GetByIdAsync`, `ExistsByMessageIdAsync`, `ListByProcessAsync`, `AddAsync`) is new.
 
+### Card ordering (within a column)
+
+**V1 — derived sort, no stored order.** `GetBoard` orders each column by a business-meaningful key per
+process: **Contas a Pagar → `DueDate` asc** (urgent bills surface first; `ReceivedAt` as tiebreak),
+**Reembolsos Internos → `ReceivedAt` asc** (oldest-waiting first). No `position`/`rank` column — this
+needs zero schema and avoids the renumber/concurrency cost of a stored order, and a due-date queue is
+better for a finance board than arbitrary manual order.
+
+**Manual within-column reordering is deferred** — it's a drag-and-drop feature (see
+[ADR-002](../decisions/ADR-002-kanban-purpose-built-boards.md)). When DnD lands, add a sortable
+**`Rank` string via _fractional indexing_** to `KanbanCard`, scoped to the `(ProcessType, Phase)`
+column, ordered `(Phase, Rank)` with `Id` as tiebreak; assign a fresh rank at the column tail on a
+phase change. Use **fractional indexing** (e.g. the `fractional-indexing` lib), *not* full LexoRank —
+the latter's buckets/rebalancing are overkill at this board's scale (tens–hundreds of cards).
+
 ---
 
 ## 11. Open Questions
