@@ -6,7 +6,7 @@
 
 | | |
 |---|---|
-| **Status** | Draft for review — no code yet |
+| **Status** | ✅ Implemented — net10; unit + integration tests green. As-built notes in [`index.md`](./index.md) §8. |
 | **Layers** | `Yvy.Domain`, `Yvy.Application`, `Yvy.Infrastructure`, `Yvy.Api` |
 | **Templates mirrored** | `Aggregates/Investors/Investor.cs`, `Funds/Commands/CreateFund/*`, `Endpoints/Funds/FundEndpoints.cs`, `FundConfiguration.cs` |
 | **New package** | `Microsoft.Identity.Web` (wraps `Microsoft.AspNetCore.Authentication.JwtBearer`) |

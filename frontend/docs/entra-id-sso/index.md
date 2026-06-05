@@ -9,10 +9,10 @@
 
 | | |
 |---|---|
-| **Status** | Design for review — no code yet |
-| **Date** | 2026-06-03 |
+| **Status** | ✅ Implemented & merged to `main` (2026-06-05, PR #1 + follow-up fix) |
+| **Date** | 2026-06-03 (designed) · 2026-06-05 (shipped) |
 | **Author** | leonardo.martins@yvy.capital |
-| **Stage** | Approach confirmed (SPA bearer + JIT users + 4 App Roles) |
+| **Stage** | Done — SPA bearer + JIT users + 4 App Roles, all phases complete (see §8) |
 
 ---
 
@@ -139,35 +139,47 @@ Details per layer live in [`backend-spec.md`](./backend-spec.md) and
 
 ---
 
-## 8. Implementation phases (SDD order)
+## 8. Implementation phases (SDD order) — ✅ all complete
 
-0. **Azure prerequisites** (Entra admin) — registrations, scope, 4 App Roles, user assignment.
-   **Step-by-step tutorial: [`phase-0-entra-setup.md`](./phase-0-entra-setup.md).**
-1. **Contract first** — add security schemes to `yvy-api.yaml`.
-2. **Domain** — `ApplicationUser` aggregate, `EntraObjectId` VO, `Role`, repository interface.
-3. **Infrastructure** — DbContext + `application_users` config + migration.
-4. **Backend API** — auth middleware, policies, `ICurrentUserProvider`, JIT provisioning.
-5. **Frontend** — MSAL, login page, route guards, async token in `api.ts`, role-gated UI.
-6. **Tests** — domain/app unit tests, integration test-auth handler (401/403/200 + provisioning).
+0. ✅ **Azure prerequisites** — 3 registrations (`Yvy.Intranet.Api`, `Yvy.Intranet.SPA`,
+   `Yvy.Graph.Worker`), `access_as_user` scope, 4 App Roles, user assignment.
+   Tutorial: [`phase-0-entra-setup.md`](./phase-0-entra-setup.md).
+1. ✅ **Contract first** — `entraId` (openIdConnect) security scheme + global `security` + 401/403 in `yvy-api.yaml`.
+2. ✅ **Domain** — `ApplicationUser` aggregate, `EntraObjectId` VO, `Role` enum, repo interface, provisioned event.
+3. ✅ **Infrastructure** — `DbSet` + `ApplicationUserConfiguration` + `AddApplicationUsers` migration.
+4. ✅ **Backend API** — `Microsoft.Identity.Web`, role policies, `ICurrentUserProvider`, JIT provisioning.
+5. ✅ **Frontend** — MSAL, login page, route guards, async token in `api.ts`, role-gated UI (`<RoleGate>`).
+6. ✅ **Tests** — **81 green** (Domain 61, Application 11, integration 9 incl. 401/403/provisioning).
+
+### As-built deviations from the original design
+- **Runtime: .NET 10**, not 9 — the dev machine had no .NET 9 runtime, so all projects retargeted to
+  `net10.0` (LTS); packages stay on their 9.x versions. (`CLAUDE.md`/`BACKEND.md` updated.)
+- **Provisioned event carries a `string` oid**, not the VO — Outbox JSON-serialization safety, matching
+  `InvestorOnboardedDomainEvent` (`backend-spec.md` §2).
+- **JIT provisioning is scheme-agnostic** (`UserProvisioning.EnsureProvisionedAsync`) so both the real
+  JWT `OnTokenValidated` path and the integration test-auth handler exercise it.
+- **Frontend roles come from the access token** (decoded client-side) — App Roles live on the API
+  registration, so `account.idTokenClaims.roles` is empty.
+- **`<MsalProvider>` owns redirect handling** — we do *not* call `handleRedirectPromise` manually
+  (doing both throws `no_token_request_cache_error`); app render gates on `inProgress === None`.
+- **Post-login lands on home `/`** — destination-preservation deferred (Entra returns to the origin
+  redirect URI). `<RoleGate>`/`useHasRole` shipped, ready for the Kanban approval UI.
 
 ---
 
-## 9. Open Questions / TBD
+## 9. Resolved decisions (formerly open questions)
 
-- **Entra provisioning** (Phase 0, IT-dependent): tenant access, registration(s), scope name /
-  Application ID URI, prod redirect URIs.
-- **One vs two registrations** — recommended two; confirm with IT.
-- **Group → App Role mapping** — which staff/Entra groups are `Approver` vs `Operator`.
-- **Token cache location** (sessionStorage vs in-memory) and lifetime — XSS trade-off; revisit if a
-  BFF is later required (ADR-001 fallback).
+- **Registrations:** three created (API + SPA + Graph worker) — least privilege.
+- **Token cache:** `sessionStorage` (ADR-001 XSS trade-off; revisit only if a BFF is adopted).
+- **SPA redirect URI must be registered under the _Single-page application_ platform** — registering it
+  under _Web_ causes `AADSTS9002326` at token redemption (learned in build; see `phase-0` Appendix B).
+- **Still open (ops/IT policy):** Group → App Role mapping — which Entra groups map to
+  `Approver`/`Operator`/`Viewer`/`Admin`; and production redirect URIs when the app is deployed.
 
 ---
 
-## 10. Recommended Next Steps
+## 10. Next steps
 
-1. Review this doc set + ADR-001 (per "document before implementing").
-2. Stand up the Entra registration(s) with IT (Phase 0) — the only blocking, external dependency.
-   Follow the tutorial: [`phase-0-entra-setup.md`](./phase-0-entra-setup.md).
-3. Land the contract change, then the backend auth phases (delivers `ICurrentUserProvider`).
-4. Wire the frontend MSAL flow + guards.
-5. Hand `ICurrentUserProvider` to the Kanban approval slice.
+The SSO foundation is complete and merged. The next feature — the **Financial Process Kanban** — can
+now build its **approval slice** on `ICurrentUserProvider` + the `Approver` policy (backend) and the
+`<RoleGate>` primitive (frontend). See [`../financial-process-kanban/`](../financial-process-kanban/index.md).

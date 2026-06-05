@@ -8,7 +8,7 @@
 
 | | |
 |---|---|
-| **Status** | Ready to perform |
+| **Status** | ✅ Completed — 3 registrations live; SPA-platform fix applied (see Appendix B, AADSTS9002326) |
 | **Date** | 2026-06-03 |
 | **Audience** | Whoever holds Entra admin rights (you, or an IT admin you instruct) |
 | **Outcome** | 3 app registrations, 1 exposed scope, 4 App Roles, assigned users, and a filled-in values sheet |
@@ -327,6 +327,7 @@ most reliably created in the portal, or via `az ad app update --app-roles @roles
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | `AADSTS50011: redirect URI … does not match` | SPA redirect URI not registered / wrong type | Add the exact origin under **Authentication → Single-page application** (§4). |
+| `AADSTS9002326: Cross-origin token redemption … only for the 'Single-Page Application' client-type` | The redirect URI is registered under the **Web** platform, not **SPA** — blocks MSAL.js PKCE token redemption from the browser | Remove the origin from **Web** and add it under **Authentication → Single-page application** (§4). **(Hit during the build — `http://localhost:5173` had been added as a Web redirect URI.)** |
 | `AADSTS65001: user/admin has not consented` | Admin consent not granted for the API scope | **Grant admin consent** on the SPA's API permissions (§4.8). |
 | `AADSTS650056` (app not found / misconfigured) | Wrong client id, or app in another tenant | Verify `VITE_ENTRA_CLIENT_ID` = SPA client id, correct tenant. |
 | API returns **401** | Missing/invalid token, wrong `aud` | Check `VITE_ENTRA_API_SCOPE` targets the API; see token-version note (§2). |
