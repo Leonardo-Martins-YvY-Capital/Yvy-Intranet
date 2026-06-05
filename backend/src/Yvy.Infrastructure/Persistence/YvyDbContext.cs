@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Yvy.Domain.Aggregates.Funds;
 using Yvy.Domain.Aggregates.Investors;
+using Yvy.Domain.Aggregates.Kanban;
 using Yvy.Domain.Aggregates.Users;
 using Yvy.Domain.Primitives;
+using Yvy.Infrastructure.Inbound;
 using Yvy.Infrastructure.Outbox;
 using Newtonsoft.Json;
 
@@ -15,6 +17,8 @@ public sealed class YvyDbContext : DbContext
     public DbSet<Fund> Funds => Set<Fund>();
     public DbSet<Investor> Investors => Set<Investor>();
     public DbSet<ApplicationUser> ApplicationUsers => Set<ApplicationUser>();
+    public DbSet<KanbanCard> KanbanCards => Set<KanbanCard>();
+    public DbSet<InboundEmailNotification> InboundEmailNotifications => Set<InboundEmailNotification>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

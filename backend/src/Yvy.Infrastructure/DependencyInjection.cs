@@ -25,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<IFundRepository, FundRepository>();
         services.AddScoped<IInvestorRepository, InvestorRepository>();
         services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
+        services.AddScoped<IKanbanCardRepository, KanbanCardRepository>();
 
         services.AddQuartz(q =>
         {
