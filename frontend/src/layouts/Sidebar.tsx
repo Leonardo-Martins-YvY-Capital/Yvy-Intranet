@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { cn } from '../lib/utils';
 import { useUIStore } from '../store/ui.store';
 import { Logo } from '../components/ui/Logo';
+import { UserMenu } from '../components/layout/UserMenu';
 
 const NAV_ITEMS = [
   {
@@ -158,6 +159,9 @@ export function Sidebar() {
           ))}
         </ul>
       </div>
+
+      {/* User menu + logout */}
+      <UserMenu collapsed={!sidebarOpen} />
     </aside>
   );
 }

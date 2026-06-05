@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Environment files — real values are per-developer/per-environment; commit .env.example only
+.env
+
 # .NET
 bin/
 obj/

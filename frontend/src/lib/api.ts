@@ -1,4 +1,6 @@
-import { useAuthStore } from '../store/auth.store';
+import { getAccessToken } from './auth/getAccessToken';
+import { msalInstance } from './auth/msalInstance';
+import { loginRequest } from './auth/msalConfig';
 
 export interface ApiError {
   type: string;
@@ -13,7 +15,7 @@ function isApiError(err: unknown): err is ApiError {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const token = useAuthStore.getState().token;
+  const token = await getAccessToken();
   try {
     const res = await fetch(`${import.meta.env.VITE_API_URL}${path}`, {
       ...init,
@@ -23,6 +25,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
         ...init?.headers,
       },
     });
+
+    if (res.status === 401) {
+      // Token missing/expired/invalid — re-authenticate interactively.
+      const account = msalInstance.getActiveAccount();
+      if (account) await msalInstance.acquireTokenRedirect({ ...loginRequest, account });
+    }
 
     if (!res.ok) {
       let err: ApiError;
