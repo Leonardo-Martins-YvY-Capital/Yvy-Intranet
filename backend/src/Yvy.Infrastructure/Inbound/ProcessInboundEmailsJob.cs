@@ -41,10 +41,12 @@ public sealed class ProcessInboundEmailsJob : IJob
         _logger = logger;
     }
 
-    public async Task Execute(IJobExecutionContext context)
-    {
-        var ct = context.CancellationToken;
+    public Task Execute(IJobExecutionContext context) => ProcessBatchAsync(context.CancellationToken);
 
+    /// <summary>Core batch logic, exposed so integration tests can drive it deterministically
+    /// instead of waiting on the Quartz timer.</summary>
+    public async Task ProcessBatchAsync(CancellationToken ct = default)
+    {
         var notifications = await _context.InboundEmailNotifications
             .Where(n => n.ProcessedOn == null)
             .OrderBy(n => n.ReceivedAt)
