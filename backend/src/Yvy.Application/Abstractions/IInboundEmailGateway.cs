@@ -14,6 +14,7 @@ public interface IInboundEmailGateway
     Task<ErrorOr<InboundEmailMessage>> GetMessageAsync(string messageId, CancellationToken ct = default);
 
     // Subscription lifecycle (driven by ManageGraphSubscriptionJob)
+    Task<ErrorOr<IReadOnlyList<GraphSubscription>>> ListSubscriptionsAsync(CancellationToken ct = default);
     Task<ErrorOr<GraphSubscription>> CreateSubscriptionAsync(CancellationToken ct = default);
     Task<ErrorOr<GraphSubscription>> RenewSubscriptionAsync(string subscriptionId, CancellationToken ct = default);
     Task DeleteSubscriptionAsync(string subscriptionId, CancellationToken ct = default);
