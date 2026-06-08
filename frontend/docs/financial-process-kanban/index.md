@@ -6,6 +6,9 @@
 > [`kanban-card-spec.md`](./kanban-card-spec.md) (domain), [`email-ingestion-spec.md`](./email-ingestion-spec.md)
 > (ingestion), [`frontend-board-spec.md`](./frontend-board-spec.md) (board UI), and
 > [ADR-002](../decisions/ADR-002-kanban-purpose-built-boards.md) (build-vs-buy decision).
+>
+> **Follow-ups:** [`slice-1-follow-ups.md`](./slice-1-follow-ups.md) — open items carried out of the
+> merged ingestion slice (PII scrubbing, live-Graph verification, ProcessType routing, attachments).
 
 | | |
 |---|---|
