@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
@@ -14,12 +15,23 @@ namespace Yvy.Api.IntegrationTests.Infrastructure;
 
 public sealed class YvyApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
+    /// <summary>The Graph webhook <c>clientState</c> secret tests post with (bound from config below).</summary>
+    public const string GraphClientState = "test-client-state-secret";
+
     private readonly PostgresContainerFixture _postgres = new();
     private NpgsqlConnection _respawnConnection = null!;
     private Respawner _respawner = null!;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.ConfigureAppConfiguration((_, config) =>
+        {
+            config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["MicrosoftGraph:ClientState"] = GraphClientState,
+            });
+        });
+
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<DbContextOptions<YvyDbContext>>();

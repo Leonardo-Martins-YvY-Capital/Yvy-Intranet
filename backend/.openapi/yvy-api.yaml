@@ -19,6 +19,8 @@ servers:
 tags:
   - name: Funds
     description: Fundo management operations
+  - name: Webhooks
+    description: Inbound integration callbacks (public, secret-protected)
 
 # Every operation requires a valid Entra ID access token by default.
 # Public exceptions (e.g. the Graph email webhook) override with `security: []` per operation.
@@ -116,6 +118,50 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  # ════════════════════════════════ Webhooks ════════════════════════════════
+  /api/v1/webhooks/graph/email:
+    post:
+      operationId: GraphEmailWebhook
+      tags: [Webhooks]
+      summary: Receive Microsoft Graph email change notifications
+      description: |
+        Public endpoint Microsoft Graph posts mailbox change notifications to. **Anonymous** (Graph is
+        unauthenticated to us) but protected by a `clientState` shared secret validated on every item.
+
+        Two behaviours share the route:
+        - **Validation handshake:** when called with `?validationToken=<token>`, echoes the token as
+          `text/plain` with **200** (used once when a subscription is created).
+        - **Notifications:** validates `clientState`, persists one durable queue row per new
+          `MessageId` (deduplicated), and returns **202** immediately. No Graph calls happen here —
+          message bodies are fetched later by a background job.
+      security: []
+      parameters:
+        - name: validationToken
+          in: query
+          required: false
+          description: Present only during the subscription validation handshake; echoed back verbatim.
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GraphNotificationBatch"
+      responses:
+        "202":
+          description: Notifications accepted and queued for processing
+        "200":
+          description: Validation handshake — echoes the validationToken as text/plain
+          content:
+            text/plain:
+              schema:
+                type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Rejected — one or more items carried an invalid clientState
+
 components:
   schemas:
     # ── Funds ──
@@ -197,6 +243,36 @@ components:
           maxLength: 3
           default: "BRL"
           example: "BRL"
+
+    # ── Webhooks ──
+    GraphNotificationBatch:
+      type: object
+      description: Lean (id-only) Microsoft Graph change-notification batch.
+      properties:
+        value:
+          type: array
+          items:
+            $ref: "#/components/schemas/GraphNotificationItem"
+
+    GraphNotificationItem:
+      type: object
+      properties:
+        subscriptionId:
+          type: string
+        clientState:
+          type: string
+          description: Shared secret; must equal the configured value or the whole batch is rejected.
+        changeType:
+          type: string
+          example: created
+        resource:
+          type: string
+        resourceData:
+          type: object
+          properties:
+            id:
+              type: string
+              description: The Graph message id — the dedup/idempotency key.
 
     # ── Shared ──
     ProblemDetails:
